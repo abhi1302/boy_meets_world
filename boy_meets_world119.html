@@ -7,42 +7,42 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <nav>
+        <a href="index.html">Home</a>
+        <a id="prevEpisode" href="#">Previous</a>
+        <a id="nextEpisode" href="#">Next</a>
+    </nav>
+    
     <h1 id="episodeTitle"></h1>
     <div id="subtitleContainer"></div>
 
     <script>
-        // Extract the episode number from the filename
         const fileName = location.pathname.split('/').pop();
-        const episodeNumber = fileName.match(/\d+/)[0];
+        const episodeNumber = parseInt(fileName.match(/\d+/)[0]);
 
-        // Define episode titles
         const episodeTitles = {
-            101: "Pilot",
-            102: "On the Fence",
-            103: "Father Knows Less",
-            104: "Cory's Alternative Friends",
-            105: "Killer Bees",
-            106: "Boys II Mensa",
-            107: "Grandma Was a Rolling Stone",
-            108: "Teacher's Bet",
-            109: "Class Pre-Union",
-            110: "Santa's Little Helper",
-            111: "The Father-Son Game",
-            112: "Once in Love With Amy",
-            113: "She Loves Me, She Loves Me Not",
-            114: "The B-Team of Life",
-            115: "Model Family",
-            116: "Risky Business",
-            117: "The Fugitive",
-            118: "It's a Wonderful Night",
-            119: "Kid Gloves",
-            120: "The Play's the Thing",
-            121: "Boy Meets Girl",
-            122: "I Dream of Feeny"
+            101: "Pilot", 102: "On the Fence", 103: "Father Knows Less", 104: "Cory's Alternative Friends",
+            105: "Killer Bees", 106: "Boys II Mensa", 107: "Grandma Was a Rolling Stone", 108: "Teacher's Bet",
+            109: "Class Pre-Union", 110: "Santa's Little Helper", 111: "The Father-Son Game",
+            112: "Once in Love With Amy", 113: "She Loves Me, She Loves Me Not", 114: "The B-Team of Life",
+            115: "Model Family", 116: "Risky Business", 117: "The Fugitive", 118: "It's a Wonderful Night",
+            119: "Kid Gloves", 120: "The Play's the Thing", 121: "Boy Meets Girl", 122: "I Dream of Feeny"
         };
 
         document.getElementById('episodeTitle').textContent = `Boy Meets World - ${episodeNumber} - ${episodeTitles[episodeNumber] || "Unknown"}`;
         const srtFile = `boy_meets_world${episodeNumber}.srt`;
+
+        if (episodeNumber > 101) {
+            document.getElementById('prevEpisode').href = `boy_meets_world${episodeNumber - 1}.html`;
+        } else {
+            document.getElementById('prevEpisode').style.display = 'none';
+        }
+
+        if (episodeNumber < 122) {
+            document.getElementById('nextEpisode').href = `boy_meets_world${episodeNumber + 1}.html`;
+        } else {
+            document.getElementById('nextEpisode').style.display = 'none';
+        }
 
         fetch(srtFile)
             .then(response => response.text())
@@ -79,7 +79,6 @@
             if (currentEntry.text) {
                 subtitleArray.push(currentEntry);
             }
-
             return subtitleArray;
         }
 
@@ -100,10 +99,9 @@
                 const div = document.createElement('div');
                 div.classList.add('subtitle-entry');
 
-                // Adjust spacing based on time difference
-                if (subtitle.spacing && subtitle.spacing > 2000) { // More than 2 seconds
-                    div.style.marginTop = '50px'; // Increased spacing
-                } else if (subtitle.spacing && subtitle.spacing > 1000) { // 1-2 seconds
+                if (subtitle.spacing && subtitle.spacing > 2000) {
+                    div.style.marginTop = '50px';
+                } else if (subtitle.spacing && subtitle.spacing > 1000) {
                     div.style.marginTop = '20px';
                 }
 
