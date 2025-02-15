@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boy Meets World - Episode</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1 id="episodeTitle"></h1>
+    <div id="subtitleContainer"></div>
+
+    <script>
+        // Extract the episode number from the filename
+        const fileName = location.pathname.split('/').pop();
+        const episodeNumber = fileName.match(/\d+/)[0];
+
+        document.getElementById('episodeTitle').textContent = `Boy Meets World - Episode ${episodeNumber}`;
+        const srtFile = `boy_meets_world${episodeNumber}.srt`;
+
+        fetch(srtFile)
+            .then(response => response.text())
+            .then(data => {
+                const subtitles = parseSRT(data);
+                displaySubtitles(subtitles);
+            })
+            .catch(error => console.error('Error loading subtitle file:', error));
+
+        function parseSRT(data) {
+            const subtitleArray = [];
+            const lines = data.split(/\r?\n/);
+            let currentEntry = {};
+            let lastTimestampEnd = null;
+
+            lines.forEach(line => {
+                if (!isNaN(line.trim())) {
+                    if (Object.keys(currentEntry).length) {
+                        subtitleArray.push(currentEntry);
+                        currentEntry = {};
+                    }
+                } else if (line.includes('-->')) {
+                    if (lastTimestampEnd) {
+                        const [start, end] = line.split(' --> ');
+                        const gap = getTimeDifference(lastTimestampEnd, start);
+                        currentEntry.spacing = gap;
+                    }
+                    currentEntry.timestamp = line;
+                    lastTimestampEnd = line.split(' --> ')[1];
+                } else if (line.trim() !== '') {
+                    currentEntry.text = (currentEntry.text ? currentEntry.text + ' ' : '') + line;
+                }
+            });
+
+            if (Object.keys(currentEntry).length) {
+                subtitleArray.push(currentEntry);
+            }
+
+            return subtitleArray;
+        }
+
+        function getTimeDifference(prevEnd, currStart) {
+            const parseTime = timeStr => {
+                const [h, m, s] = timeStr.split(':');
+                const [sec, ms] = s.split(',');
+                return parseInt(h) * 3600000 + parseInt(m) * 60000 + parseInt(sec) * 1000 + parseInt(ms);
+            };
+
+            return parseTime(currStart) - parseTime(prevEnd);
+        }
+
+        function displaySubtitles(subtitles) {
+            const container = document.getElementById('subtitleContainer');
+            container.innerHTML = '';
+
+            subtitles.forEach(subtitle => {
+                const div = document.createElement('div');
+                div.classList.add('subtitle-entry');
+
+                // Adjust spacing based on time difference
+                if (subtitle.spacing && subtitle.spacing > 2000) { // More than 2 seconds
+                    div.style.marginTop = '50px'; // Increased spacing
+                } else if (subtitle.spacing && subtitle.spacing > 1000) { // 1-2 seconds
+                    div.style.marginTop = '20px';
+                }
+
+                const text = document.createElement('div');
+                text.classList.add('text');
+                text.textContent = subtitle.text;
+
+                div.appendChild(text);
+                container.appendChild(div);
+            });
+        }
+    </script>
+</body>
+</html>
