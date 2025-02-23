@@ -1,58 +1,24 @@
-<!-- Updated index.html with better navigation -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Boy Meets World - Episodes</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <h1>Boy Meets World - Episode List</h1>
-    <input type="text" id="search" placeholder="Search episodes..." onkeyup="filterEpisodes()">
-    <ul id="episodeList">
-        <!-- JavaScript will populate this dynamically -->
-    </ul>
-    
-    <script>
-        const episodes = [
-            { num: 101, title: "Pilot" },
-            { num: 102, title: "On the Fence" },
-            { num: 103, title: "Father Knows Less" },
-            { num: 104, title: "Cory's Alternative Friends" },
-            { num: 105, title: "Killer Bees" },
-            { num: 106, title: "Boys II Mensa" },
-            { num: 107, title: "Grandma Was a Rolling Stone" },
-            { num: 108, title: "Teacher's Bet" },
-            { num: 109, title: "Class Pre-Union" },
-            { num: 110, title: "Santa's Little Helper" },
-            { num: 111, title: "The Father-Son Game" },
-            { num: 112, title: "Once in Love With Amy" },
-            { num: 113, title: "She Loves Me, She Loves Me Not" },
-            { num: 114, title: "The B-Team of Life" },
-            { num: 115, title: "Model Family" },
-            { num: 116, title: "Risky Business" },
-            { num: 117, title: "The Fugitive" },
-            { num: 118, title: "It's a Wonderful Night" },
-            { num: 119, title: "Kid Gloves" },
-            { num: 120, title: "The Play's the Thing" },
-            { num: 121, title: "Boy Meets Girl" },
-            { num: 122, title: "I Dream of Feeny" }
-        ];
+<script>
+    const baseURL = "https://boy-meets-world.onrender.com/";
 
-        const episodeList = document.getElementById("episodeList");
-        episodes.forEach(ep => {
-            const li = document.createElement("li");
-            li.innerHTML = `<a href="boy_meets_world${ep.num}.html">Boy Meets World - ${ep.num} - ${ep.title}</a>`;
-            episodeList.appendChild(li);
-        });
+    async function loadEpisodes() {
+        try {
+            const response = await fetch(baseURL + "index.json");
+            const files = await response.json();
 
-        function filterEpisodes() {
-            const query = document.getElementById("search").value.toLowerCase();
-            document.querySelectorAll("#episodeList li").forEach(li => {
-                li.style.display = li.textContent.toLowerCase().includes(query) ? "block" : "none";
+            const episodeList = document.getElementById("episodeList");
+            episodeList.innerHTML = ""; // Clear existing list
+
+            files.forEach(file => {
+                const li = document.createElement("li");
+                const episodeName = file.replace(/\.srt$/, ''); // Remove extension
+                li.innerHTML = `<a href="${baseURL}${file}">${episodeName}</a>`;
+                episodeList.appendChild(li);
             });
+        } catch (error) {
+            console.error("Error fetching episode list:", error);
         }
-    </script>
-</body>
-</html>
+    }
+
+    loadEpisodes();
+</script>
