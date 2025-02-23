@@ -1,24 +1,49 @@
-<script>
-    const baseURL = "https://boy-meets-world.onrender.com/";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boy Meets World - Episodes</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Boy Meets World - Episode List</h1>
+    <input type="text" id="search" placeholder="Search episodes..." onkeyup="filterEpisodes()">
+    <ul id="episodeList">
+        <!-- Episodes will be populated here -->
+    </ul>
 
-    async function loadEpisodes() {
-        try {
-            const response = await fetch(baseURL + "index.json");
-            const files = await response.json();
+    <script>
+        const baseURL = "https://boy-meets-world.onrender.com/";
 
-            const episodeList = document.getElementById("episodeList");
-            episodeList.innerHTML = ""; // Clear existing list
+        async function loadEpisodes() {
+            try {
+                const response = await fetch(baseURL + "index.json");
+                if (!response.ok) throw new Error("Failed to fetch index.json");
 
-            files.forEach(file => {
-                const li = document.createElement("li");
-                const episodeName = file.replace(/\.srt$/, ''); // Remove extension
-                li.innerHTML = `<a href="${baseURL}${file}">${episodeName}</a>`;
-                episodeList.appendChild(li);
-            });
-        } catch (error) {
-            console.error("Error fetching episode list:", error);
+                const files = await response.json();
+                const episodeList = document.getElementById("episodeList");
+
+                if (!episodeList) {
+                    console.error("Element #episodeList not found!");
+                    return;
+                }
+
+                episodeList.innerHTML = ""; // Clear existing list
+
+                files.forEach(file => {
+                    const li = document.createElement("li");
+                    const episodeName = file.replace(/\.srt$/, ''); // Remove extension
+                    li.innerHTML = `<a href="${baseURL}${file}">${episodeName}</a>`;
+                    episodeList.appendChild(li);
+                });
+            } catch (error) {
+                console.error("Error fetching episode list:", error);
+            }
         }
-    }
 
-    loadEpisodes();
-</script>
+        // Ensure the script runs after the page loads
+        window.onload = loadEpisodes;
+    </script>
+</body>
+</html>
