@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Show Subtitle</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <nav>
+    <a href="index.html">Home</a>
+    <a id="prevEpisode" href="#">Previous</a>
+    <a id="nextEpisode" href="#">Next</a>
+  </nav>
+
+  <h1 id="episodeTitle"></h1>
+  <div id="subtitleContainer"></div>
+
+  <script>
+    const baseURL = "https://boy-meets-world.onrender.com/";
+
+    // Get the subtitle file from query parameter (decoded automatically)
+    const urlParams = new URLSearchParams(window.location.search);
+    const subtitleFile = urlParams.get("file");
+
+    if (!subtitleFile) {
+      document.getElementById("episodeTitle").textContent = "No episode selected";
+      console.error("No subtitle file provided!");
+    } else {
+      // Load the index.json and then update navigation and load the subtitles
+      loadIndexAndSubtitles(subtitleFile);
+    }
+
+    async function loadIndexAndSubtitles(file) {
+      try {
+        const response = await fetch(baseURL + "index.json");
+        if (!response.ok) throw new Error("Failed to fetch index.json");
+
+        const files = await response.json();
+        updateNavigation(files, file);
+        loadSubtitles(file);
+      } catch (error) {
+        console.error("Error fetching index.json:", error);
+      }
+    }
+
+    function updateNavigation(files, currentFile) {
+      const currentIndex = files.indexOf(currentFile);
+      const prevEpisode = document.getElementById("prevEpisode");
+      const nextEpisode = document.getElementById("nextEpisode");
+
+      if (currentIndex > 0) {
+        prevEpisode.href = `show_subtitle.html?file=${encodeURIComponent(files[currentIndex - 1])}`;
+      } else {
+        prevEpisode.style.display = "none";
+      }
+
+      if (currentIndex < files.length - 1) {
+        nextEpisode.href = `show_subtitle.html?file=${encodeURIComponent(files[currentIndex + 1])}`;
+      } else {
+        nextEpisode.style.display = "none";
+      }
+
+      // Set the episode title by removing the file extension.
+      document.getElementById("episodeTitle").textContent = currentFile.replace(/\.srt$/, "");
+    }
+
+    async function loadSubtitles(file) {
+      try {
+        const response = await fetch(baseURL + file);
+        if (!response.ok) throw new Error("Subtitle file not found");
+
+        const data = await response.text();
+        const subtitles = parseSRT(data);
+        displaySubtitles(subtitles);
+      } catch (error) {
+        console.error("Error loading subtitle file:", error);
+      }
+    }
+
+    function parseSRT(data) {
+      const subtitles = [];
+      const lines = data.split(/\r?\n/);
+      let entry = { text: "" };
+      let lastTimestampEnd = null;
+
+      lines.forEach((line) => {
+        if (/^\d+$/.test(line.trim())) {
+          if (entry.text) {
+            subtitles.push(entry);
+            entry = { text: "" };
+          }
+        } else if (line.includes("-->")) {
+          const [start, end] = line.split(" --> ");
+          if (lastTimestampEnd) {
+            entry.spacing = getTimeDifference(lastTimestampEnd, start);
+          }
+          lastTimestampEnd = end;
+        } else if (line.trim() !== "") {
+          entry.text += (entry.text ? " " : "") + line.trim();
+        }
+      });
+
+      if (entry.text) subtitles.push(entry);
+      return subtitles;
+    }
+
+    function getTimeDifference(prevEnd, currStart) {
+      const parseTime = (timeStr) => {
+        const [h, m, s] = timeStr.split(":");
+        const [sec, ms] = s.split(",");
+        return (
+          parseInt(h) * 3600000 +
+          parseInt(m) * 60000 +
+          parseInt(sec) * 1000 +
+          parseInt(ms)
+        );
+      };
+      return parseTime(currStart) - parseTime(prevEnd);
+    }
+
+    function displaySubtitles(subtitles) {
+      const container = document.getElementById("subtitleContainer");
+      container.innerHTML = "";
+
+      subtitles.forEach((subtitle) => {
+        const div = document.createElement("div");
+        div.classList.add("subtitle-entry");
+
+        if (subtitle.spacing && subtitle.spacing > 2000) {
+          div.style.marginTop = "50px";
+        } else if (subtitle.spacing && subtitle.spacing > 1000) {
+          div.style.marginTop = "20px";
+        }
+
+        const text = document.createElement("div");
+        text.classList.add("text");
+        text.textContent = subtitle.text;
+
+        div.appendChild(text);
+        container.appendChild(div);
+      });
+    }
+  </script>
+</body>
+</html>
