@@ -118,7 +118,7 @@
       };
       return parseTime(currStart) - parseTime(prevEnd);
     }
-
+	
 	
 	function displaySubtitles(subtitles) {
     const container = document.getElementById('subtitleContainer');
@@ -128,10 +128,18 @@
         const div = document.createElement('div');
         div.classList.add('subtitle-entry');
 
-        if (subtitle.spacing && subtitle.spacing > 2000) {
-            div.style.marginTop = '50px';
-        } else if (subtitle.spacing && subtitle.spacing > 1000) {
-            div.style.marginTop = '20px';
+        if (subtitle.spacing) {
+            if (subtitle.spacing > 4000) {
+                div.style.marginTop = '200px';
+            } else if (subtitle.spacing > 3000) {
+                div.style.marginTop = '150px';
+            } else if (subtitle.spacing > 2000) {
+                div.style.marginTop = '100px';
+            } else if (subtitle.spacing > 1000) {
+                div.style.marginTop = '50px';
+            } else if (subtitle.spacing > 500) {
+                div.style.marginTop = '20px';
+            }
         }
 
         const text = document.createElement('div');
@@ -142,8 +150,10 @@
 
         div.appendChild(text);
         container.appendChild(div);
-	 });
+      });
 	}
+
+
 
   </script>
 </body>
